@@ -20,33 +20,42 @@ interface PortalShellProps {
 }
 
 export function PortalShell({ role, userName, userSubtitle, title, subtitle, children }: PortalShellProps) {
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  // One hamburger button, one piece of state: it opens/closes the sidebar
+  // as a slide-in drawer on small screens, and shows/hides the persistent
+  // sidebar on large screens — same button, same toggle, every portal.
+  const [navOpen, setNavOpen] = useState(true);
   const items = PORTAL_NAV[role];
 
   return (
     <div className="flex min-h-screen bg-lightbg">
-      {/* Sidebar — desktop */}
-      <aside className="hidden w-60 shrink-0 bg-navy text-white lg:flex lg:flex-col">
+      {/* Sidebar — persistent on large screens, only when navOpen */}
+      <aside
+        className={
+          navOpen
+            ? "hidden w-60 shrink-0 bg-navy text-white lg:flex lg:flex-col"
+            : "hidden"
+        }
+      >
         <SidebarContent role={role} items={items} />
       </aside>
 
-      {/* Sidebar — mobile drawer */}
-      {mobileNavOpen && (
+      {/* Sidebar — slide-in drawer on small screens, only when navOpen */}
+      {navOpen && (
         <div className="fixed inset-0 z-50 flex lg:hidden">
           <div
             className="absolute inset-0 bg-navy-dark/60"
-            onClick={() => setMobileNavOpen(false)}
+            onClick={() => setNavOpen(false)}
             aria-hidden
           />
           <aside className="relative flex w-64 flex-col bg-navy text-white">
             <button
-              onClick={() => setMobileNavOpen(false)}
+              onClick={() => setNavOpen(false)}
               aria-label="Close menu"
               className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-white/70 hover:bg-white/10"
             >
               <XIcon className="h-4 w-4" />
             </button>
-            <SidebarContent role={role} items={items} onNavigate={() => setMobileNavOpen(false)} />
+            <SidebarContent role={role} items={items} onNavigate={() => setNavOpen(false)} />
           </aside>
         </div>
       )}
@@ -56,11 +65,14 @@ export function PortalShell({ role, userName, userSubtitle, title, subtitle, chi
         <header className="flex h-16 items-center justify-between border-b border-edge bg-white px-4 sm:px-6">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setMobileNavOpen(true)}
-              aria-label="Open menu"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-navy hover:bg-lightbg lg:hidden"
+              onClick={() => setNavOpen((v) => !v)}
+              aria-label={navOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={navOpen}
+              title={navOpen ? "Hide menu" : "Show menu"}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-navy transition-colors hover:bg-lightbg"
             >
-              <MenuIcon className="h-5 w-5" />
+              {navOpen ? <XIcon className="h-5 w-5 lg:hidden" /> : null}
+              <MenuIcon className={navOpen ? "hidden h-5 w-5 lg:block" : "h-5 w-5"} />
             </button>
             <div className="relative hidden sm:block">
               <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate" />
